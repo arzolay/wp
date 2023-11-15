@@ -24,47 +24,20 @@ app.get('/', (req, res) => {
     res.send('API de WhatsApp');
 });
 
-//Nuevo
 
-// app.get('/send-image/:number/:imageUrl', async (req, res) => {
-//   try {
-//     const { number, imageUrl } = req.params;
-//     const client = await initWhatsapp();
-//     const chatId = `${number}@c.us`;
-//     const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-//     const imageBase64 = Buffer.from(imageBuffer.data, 'binary').toString('base64');
-//     const mimeType = mime.lookup(imageUrl);
-//     const dataUri = `data:${mimeType};base64,${imageBase64}`;
-//     await client.sendMessage(chatId, new MessageMedia(mimeType, dataUri));
-//     res.send('Imagen enviada!');
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send('Ocurrió un error al enviar la imagen');
-//   }
-// });
+app.post('/send-pdf', async (req, res) => {
+    const { phoneNumber, pdfUrl } = req.body;
 
-// app.post('/send-image', async (req, res) => {
+    const media = await MessageMedia.fromUrl(pdfUrl);
 
-// 	  try {
-// 	    const { phoneNumber, imageUrl } = req.body;
-// 	    const client = await initWhatsapp();
-// 	    const chatId = `${phoneNumber}@c.us`;
-// 	    const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-// 	    const imageBase64 = Buffer.from(imageBuffer.data, 'binary').toString('base64');
-// 	    const mimeType = mime.lookup(imageUrl);
-// 	    const dataUri = `data:${mimeType};base64,${imageBase64}`;
-// 	    await client.sendMessage(chatId, new MessageMedia(mimeType, dataUri));
-// 	    res.send('Imagen enviada!');
-// 	  } catch (error) {
-// 	    console.log(error);
-// 	    res.status(500).send('Ocurrió un error al enviar la imagen');
-// 	  }
+    client.sendMessage(phoneNumber, media).then(() => {
+        res.json({ message: 'Mensaje enviado con éxito' });
+    }).catch((error) => {
+        res.status(500).json({ error: error.message });
+    });
 
+});
 
-// });
-
-
-//Nuevo
 
 app.post('/send-message', (req, res) => {
     const { phoneNumber, message } = req.body;
@@ -84,6 +57,16 @@ client.on('qr', (qr) => {
 client.on('ready', () => {
     console.log('Cliente de WhatsApp listo!');
 });
+
+
+client.on('message', message => {
+
+    const sender = message.from.split('@')[0]; //Sin el +
+    const body = message.body.toLowerCase();
+
+    message.reply("Disculpe, este número no es monitorizado, solo es para notificaciones.");
+});
+
 
 client.initialize();
 
